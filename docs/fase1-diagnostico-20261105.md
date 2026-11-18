@@ -8,7 +8,7 @@ e do sysstat). Nenhum arquivo `.env` ou variável de ambiente de container foi l
 
 | item | valor |
 |---|---|
-| servidor | srv1851839, Hostinger KVM 2, Ubuntu 24.04.4 LTS, kernel 6.8.0-147, ligado há 12 dias (desde 23/10 16:14) |
+| servidor | srv-vps, Hostinger KVM 2, Ubuntu 24.04.4 LTS, kernel 6.8.0-147, ligado há 12 dias (desde 23/10 16:14) |
 | CPU | 2 vCPUs AMD EPYC 9354P (Zen 4) com AVX2 e AVX-512 (inclui VNNI e BF16): bom para IA em CPU. Sem GPU |
 | memória | 7,75 GiB no total; às 14:38: 3,5 GB em uso, **4,4 GB disponíveis** |
 | swap | arquivo de 2 GB, **1,2 GB ocupados** por processos parados há tempo (MariaDB, gunicorn, n8n); pressão de memória ≈ 0 |
