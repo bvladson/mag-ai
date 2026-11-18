@@ -27,3 +27,11 @@ Na VPS (Fase 3), a partir da pasta do pacote enviado:
       && bash ops/mag-ai.sh modelo && bash ops/mag-ai.sh subir && bash ops/mag-ai.sh testar \
       && bash ops/mag-ai.sh ensaiar-reversao && bash ops/mag-ai.sh comparar antes depois
     # voltar atrás: bash /opt/mag-ai/bin/mag-ai.sh desfazer
+
+---
+
+## Autoria
+
+Projeto meu — concepção, arquitetura, implementação, implantação e operação em produção.
+Durante o desenvolvimento usei assistentes de IA (Codex e Claude) como ferramenta de apoio;
+a condução e as decisões técnicas são minhas.
