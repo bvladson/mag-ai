@@ -1,0 +1,36 @@
+2026-11-07T01:38:28-03:00
+               total        used        free      shared  buff/cache   available
+Mem:            7940        3124        2082         275        3301        4815
+Swap:           2047        1514         533
+0.35 0.78 0.65 1/950 3027779
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1        96G   69G   28G  72% /
+mag-crm-waha-hml-20261106-web-1 0.00% 54.53MiB / 768MiB
+mag-site-web-1 0.05% 131.1MiB / 768MiB
+mag-site-omie-consulta-1 0.00% 20.78MiB / 128MiB
+mag-site-omie-pedidos-1 0.00% 22.84MiB / 128MiB
+biomie-v2-worker-1 0.00% 89.45MiB / 512MiB
+biomie-v2-web-1 0.01% 79.11MiB / 1.5GiB
+buildx_buildkit_biomie-hml-limitado0 0.01% 443.5MiB / 3GiB
+scf-web-1 0.00% 13.53MiB / 384MiB
+scf-db-1 0.02% 15.47MiB / 384MiB
+biomie-v2-gateway-1 0.00% 3.184MiB / 64MiB
+biomie-v2-auth-1 0.02% 15.04MiB / 256MiB
+biomie-v2-rest-1 0.14% 51.55MiB / 256MiB
+biomie-v2-db-1 0.00% 252.2MiB / 768MiB
+vsb-n8n-runners-1 0.00% 5.223MiB / 512MiB
+vsb-n8n-n8n-1 0.04% 248.8MiB / 1GiB
+vsb-n8n-postgres-1 4.02% 35.96MiB / 512MiB
+vsb-erpnext-frontend-1 0.00% 2.988MiB / 7.755GiB
+vsb-erpnext-queue-long-1 0.00% 50.32MiB / 7.755GiB
+vsb-erpnext-queue-short-1 0.00% 48.22MiB / 7.755GiB
+vsb-erpnext-websocket-1 0.00% 24.53MiB / 7.755GiB
+vsb-erpnext-backend-1 0.01% 166.2MiB / 7.755GiB
+vsb-erpnext-scheduler-1 0.00% 34.71MiB / 7.755GiB
+vsb-erpnext-redis-queue-1 0.28% 3.762MiB / 7.755GiB
+vsb-erpnext-redis-cache-1 0.24% 17.45MiB / 7.755GiB
+vsb-erpnext-db-1 0.05% 59.08MiB / 7.755GiB
+vsb-site-neto 0.00% 62.96MiB / 7.755GiB
+vsb-site-mobile-r8 0.00% 2.559MiB / 7.755GiB
+vsb-cms-wordpress-1 0.00% 347.2MiB / 2GiB
+vsb-cms-database-1 0.02% 50.99MiB / 1GiB

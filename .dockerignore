@@ -1,0 +1,4 @@
+# O build do gateway só precisa disto (contexto = raiz do projeto).
+*
+!gateway/package.json
+!gateway/src/**

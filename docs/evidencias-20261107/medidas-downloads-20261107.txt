@@ -1,0 +1,6 @@
+antes-construir | 2026-11-07 01:02:28 | loadavg 0.60 0.59 0.50 | MemAvailable 4542 MB | eth0 rx_bytes=5768479122 tx_bytes=12515235495
+depois-construir | 2026-11-07 01:03:51 | loadavg 1.67 0.92 0.63 | MemAvailable 4540 MB | eth0 rx_bytes=7398503874 tx_bytes=12523171580
+antes-modelo | 2026-11-07 01:04:58 | loadavg 0.83 0.85 0.62 | MemAvailable 4612 MB | eth0 rx_bytes=7398521107 tx_bytes=12523245363
+depois-modelo | 2026-11-07 01:05:18 | loadavg 1.67 1.04 0.69 | MemAvailable 4617 MB | eth0 rx_bytes=8468883658 tx_bytes=12529309313
+antes-subir | 2026-11-07 01:06:28 | loadavg 0.56 0.83 0.64 | MemAvailable 4619 MB | eth0 rx_bytes=8468913421 tx_bytes=12529412236
+depois-subir | 2026-11-07 01:06:35 | loadavg 0.79 0.87 0.66 | MemAvailable 4580 MB | eth0 rx_bytes=8468915751 tx_bytes=12529420105

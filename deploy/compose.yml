@@ -1,0 +1,106 @@
+# MAG AI — Ollama + gateway interno. Projeto Docker separado ("mag-ai"); não toca em nenhum outro projeto.
+#
+# Rede e volume criados ANTES pelo ops/mag-ai.sh (por isso "external"):
+#   mag-ai_modelos  volume com os modelos (sobrevive a "down"; só sai no "remover")
+#   mag-ai_biomie   rede interna (sem internet, ponte sem endereço do servidor) só entre o gateway e o BIOMIE
+# A rede mag-ai_interna é deste projeto: só Ollama e gateway, sem internet e sem endereço do servidor na ponte.
+#
+# Nenhuma porta no servidor. Ollama só é alcançável pelo gateway.
+name: mag-ai
+
+services:
+  ollama:
+    image: mag-ai-ollama:${OLLAMA_VERSION:?defina OLLAMA_VERSION no .env}-cpu
+    container_name: mag-ai-ollama
+    restart: unless-stopped
+    environment:
+      OLLAMA_HOST: 0.0.0.0:11434       # dentro da rede interna; não há porta publicada
+      OLLAMA_NO_CLOUD: "1"             # desliga modelos e busca na nuvem (a rede também não tem saída)
+      OLLAMA_NUM_PARALLEL: "1"         # uma geração por vez
+      OLLAMA_MAX_LOADED_MODELS: "1"    # padrão em CPU seria 3
+      OLLAMA_MAX_QUEUE: "2"            # padrão seria 512; a fila "de verdade" fica no gateway
+      OLLAMA_CONTEXT_LENGTH: "2048"    # homologação começa em 2.048 (o modelo aceita 256K); amplia conforme resultados
+      OLLAMA_KEEP_ALIVE: 2m            # descarrega da memória após 2 min sem uso (homologação)
+      OLLAMA_VULKAN: "0"               # sem GPU: não procura aceleração Vulkan (vem ligada por padrão)
+      # OLLAMA_FLASH_ATTENTION / OLLAMA_KV_CACHE_TYPE: só depois de medir na homologação (Fase 5)
+    volumes:
+      - modelos:/home/ollama/.ollama
+    networks:
+      - interna
+    mem_limit: 2560m                   # 2,5 GB
+    memswap_limit: 2560m               # igual ao limite = sem swap para este container
+    cpus: 1.0                          # no máximo 1 das 2 vCPUs
+    cpu_shares: 512                    # em disputa, cede para os outros sistemas (padrão 1024)
+    pids_limit: 256
+    oom_score_adj: 500                 # se faltar memória no servidor, a IA cai antes dos bancos e sites
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "/usr/bin/ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  gateway:
+    image: mag-ai-gateway:${GATEWAY_VERSION:?defina GATEWAY_VERSION no .env}
+    container_name: mag-ai-gateway
+    restart: unless-stopped
+    depends_on:
+      ollama:
+        condition: service_started
+    environment:
+      OLLAMA_URL: http://mag-ai-ollama:11434
+      MAG_AI_MODEL: ${MAG_AI_MODEL:?defina MAG_AI_MODEL no .env}
+      MAG_AI_MODEL_ANALISE: ${MAG_AI_MODEL_ANALISE:-}   # segundo modelo (tarefa analisar); vazio = desligada
+      MAG_AI_NUM_CTX: "2048"
+      MAG_AI_NUM_THREAD: "1"
+      MAG_AI_KEEP_ALIVE: 2m
+      MAG_AI_QUEUE_MAX: "2"
+      MAG_AI_QUEUE_WAIT_S: "30"
+      MAG_AI_APPS_FILE: /run/mag-ai/apps.json
+    volumes:
+      - /opt/mag-ai/config/apps.json:/run/mag-ai/apps.json:ro   # só hashes das chaves
+    networks:
+      interna: {}
+      cliente_biomie:
+        aliases: [mag-ai]              # o BIOMIE chama http://mag-ai:8080
+    user: "10080:10080"
+    mem_limit: 192m
+    memswap_limit: 192m
+    cpus: 0.25
+    pids_limit: 64
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+volumes:
+  modelos:
+    name: mag-ai_modelos
+    external: true
+
+networks:
+  interna:
+    name: mag-ai_interna
+    internal: true
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.inhibit_ipv4: "true"   # ponte sem endereço do servidor: só container com container
+    labels:
+      br.com.mag.projeto: mag-ai
+  cliente_biomie:
+    name: mag-ai_biomie
+    external: true

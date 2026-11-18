@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MAG AI — Fases 1 e 2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Relatório técnico na identidade do BIOMIE: faixa marinho, azul de ação, cinzas puxados para o azul.
+     Layout: coluna de leitura de ~72ch, tabelas e figura podem alargar até 1080px. */
+  :root {
+    --paper: #F6F8FB;
+    --panel: #FFFFFF;
+    --ink: #0B1B33;
+    --muted: #5C728C;
+    --line: #D8E0EB;
+    --accent: #075CCA;
+    --accent-soft: #E8F0FB;
+    --band: #061A3D;
+    --band-ink: #F2F6FC;
+    --ok: #1C7A47;
+    --ok-soft: #E3F3EA;
+    --warn: #9A5A00;
+    --warn-soft: #FBF0DF;
+    --font-body: "Geist", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-mono: "Geist Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0A1322; --panel: #0F1B2E; --ink: #E5ECF6; --muted: #93A6BF; --line: #22334C;
+      --accent: #6AA6F5; --accent-soft: #13294A; --band: #061A3D; --band-ink: #F2F6FC;
+      --ok: #5BC48A; --ok-soft: #10301F; --warn: #F0B25A; --warn-soft: #36260C;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #0A1322; --panel: #0F1B2E; --ink: #E5ECF6; --muted: #93A6BF; --line: #22334C;
+    --accent: #6AA6F5; --accent-soft: #13294A; --band: #061A3D; --band-ink: #F2F6FC;
+    --ok: #5BC48A; --ok-soft: #10301F; --warn: #F0B25A; --warn-soft: #36260C;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font: 400 16px/1.6 var(--font-body);
+  }
+  header.band { background: var(--band); color: var(--band-ink); }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+  .read { max-width: 72ch; }
+  header .wrap { padding-top: 40px; padding-bottom: 34px; display: grid; gap: 12px; }
+  .eyebrow { font: 500 13px/1.2 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; opacity: .8; }
+  h1 { margin: 0; font-size: clamp(28px, 4.2vw, 40px); line-height: 1.15; font-weight: 700; text-wrap: balance; }
+  .meta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: 14px; opacity: .92; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font: 500 13px/1.4 var(--font-body); }
+  .pill.wait { background: #FFE7B8; color: #4A2E00; }
+  .pill.ok { background: var(--ok-soft); color: var(--ok); }
+  .pill.warn { background: var(--warn-soft); color: var(--warn); }
+  main .wrap { display: grid; gap: 44px; padding-top: 36px; padding-bottom: 64px; }
+  section { display: grid; gap: 14px; }
+  h2 { margin: 0; font-size: 24px; line-height: 1.25; font-weight: 700; text-wrap: balance; }
+  h2 .num { font: 500 14px/1 var(--font-mono); color: var(--accent); margin-right: 10px; vertical-align: 3px; }
+  h3 { margin: 10px 0 0; font-size: 18px; font-weight: 600; text-wrap: balance; }
+  p, li { margin: 0; }
+  ul, ol { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; }
+  code, .mono { font-family: var(--font-mono); font-size: .9em; }
+  code { background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+  a { color: var(--accent); }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .summary { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 8px; padding: 18px 20px; }
+  .summary ol { gap: 10px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+  .tile { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: grid; gap: 4px; align-content: start; }
+  .tile .k { font-size: 13px; color: var(--muted); }
+  .tile .v { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.2; }
+  .tile .s { font-size: 13px; color: var(--muted); }
+  .tile.warn { border-color: color-mix(in srgb, var(--warn) 45%, var(--line)); }
+  .tile.warn .v { color: var(--warn); }
+  .table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-weight: 600; font-size: 13px; color: var(--muted); background: color-mix(in srgb, var(--accent-soft) 55%, var(--panel)); }
+  tr:last-child td { border-bottom: 0; }
+  td.n { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .decision td:first-child { font: 600 14px/1.4 var(--font-mono); color: var(--accent); white-space: nowrap; }
+  .approve { background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line)); border-radius: 8px; padding: 16px 18px; display: grid; gap: 10px; }
+  .approve blockquote { margin: 0; font: 500 15px/1.5 var(--font-mono); background: var(--panel); border-radius: 6px; padding: 12px 14px; border: 1px solid var(--line); }
+  .approve button { justify-self: start; font: 500 14px/1 var(--font-body); padding: 9px 14px; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent); color: #fff; cursor: pointer; }
+  .approve button:hover { filter: brightness(1.08); }
+  figure { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: grid; gap: 12px; }
+  figure .svg-scroll { overflow-x: auto; }
+  figure svg { display: block; width: 100%; min-width: 760px; height: auto; color: var(--ink); }
+  figcaption { font-size: 14px; color: var(--muted); max-width: 80ch; }
+  .box { fill: var(--panel); stroke: currentColor; stroke-width: 1.4; }
+  .box.ai { stroke: var(--accent); stroke-width: 2; fill: var(--accent-soft); }
+  .box.dash { stroke-dasharray: 5 4; }
+  .zone { fill: color-mix(in srgb, var(--accent-soft) 45%, transparent); stroke: var(--accent); stroke-dasharray: 6 5; stroke-width: 1.2; }
+  .t { fill: currentColor; font: 600 13px var(--font-body); }
+  .ts { fill: var(--muted); font: 400 11.5px var(--font-body); }
+  .tl { fill: var(--muted); font: 500 11px var(--font-mono); }
+  .tz { fill: var(--accent); font: 600 11.5px var(--font-body); }
+  .edge { stroke: currentColor; stroke-width: 1.4; fill: none; }
+  .edge.dash { stroke-dasharray: 5 4; }
+  .twocol { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px 18px; display: grid; gap: 10px; align-content: start; }
+  .card h3 { margin: 0; }
+  .note { font-size: 14px; color: var(--muted); }
+  .sources { font-size: 14px; }
+  footer { border-top: 1px solid var(--line); }
+  footer .wrap { padding-top: 18px; padding-bottom: 28px; font-size: 13px; color: var(--muted); }
+  @media (max-width: 480px) {
+    body { font-size: 15px; }
+    .tile .v { font-size: 21px; }
+    th, td { padding: 8px 9px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<header class="band">
+  <div class="wrap">
+    <div class="eyebrow">MAG AI · IA local na VPS da MAG</div>
+    <h1>IA local instalada e testada: resultados da Fase 3</h1>
+    <div class="meta">
+      <span>07/11/2026</span><span aria-hidden="true">·</span>
+      <span>madrugada de sábado · diagnóstico e plano de 05/11 mais abaixo</span>
+      <span class="pill ok">Fase 3 concluída · 07/11, 01:39</span>
+      <span class="pill wait">Fase 4 aguarda aprovação dos resultados</span>
+    </div>
+  </div>
+</header>
+
+<main>
+<div class="wrap">
+
+<section aria-labelledby="fase3">
+  <h2 id="fase3"><span class="num">FASE 3</span>Instalação concluída: resultados</h2>
+  <div class="summary read">
+    <ol>
+      <li><strong>Instalado e testado na madrugada de sábado 07/11.</strong> Ollama 0.40.14 (só CPU) e gateway MAG AI, com o modelo <code>qwen3.5:0.8b-q8_0</code>. Os dois containers estão no ar, saudáveis e ociosos, sem porta no servidor.</li>
+      <li><strong>Todos os passos passaram:</strong> 19 verificações OK e nenhuma falha no teste, ensaio de reversão aprovado, zero diferenças fora do MAG AI nas duas comparações e checklist final com 0 falhas e 0 avisos. O servidor ficou livre às 01:41.</li>
+      <li><strong>Nenhum critério de parada foi atingido.</strong> Pico do Ollama 1.783 MB (parada em 2.400); memória livre mínima do servidor 3.021 MB (parada em 1.500); nenhum encerramento por memória.</li>
+      <li><strong>A qualidade das respostas é limitada.</strong> O modelo copia bem os números, mas disse que a meta foi batida com 91,6% e inventou uma margem de lucro. Na leitura humana, acertou 5 de 8 perguntas e 3 de 6 classificações. Serve para reescrever fatos já calculados pelo BIOMIE, não para concluir sozinho.</li>
+      <li><strong>O BIOMIE v2 não foi tocado:</strong> mesma release (f4bbe45540f9), web e worker sem reinício e nenhum aviso do monitor na janela.</li>
+    </ol>
+  </div>
+
+  <div class="tiles">
+    <div class="tile"><span class="k">Ollama no pico</span><span class="v">1.783 MB</span><span class="s">teto 2.560 · parada em 2.400</span></div>
+    <div class="tile"><span class="k">Memória livre mínima do servidor</span><span class="v">3.021 MB</span><span class="s">voltou a 4.773 MB 2 min após o último pedido</span></div>
+    <div class="tile"><span class="k">Resposta com o modelo carregado</span><span class="v">9–14 s</span><span class="s">13 tokens/s · ~45 s no primeiro pedido após 2 min parado</span></div>
+    <div class="tile warn"><span class="k">Qualidade (leitura humana)</span><span class="v">5/8 · 3/6</span><span class="s">respostas certas · classificações certas</span></div>
+    <div class="tile"><span class="k">Ensaio de reversão</span><span class="v">12 s</span><span class="s">desfazer em menos de 1 s · nada fora do MAG AI mudou</span></div>
+    <div class="tile"><span class="k">Download, uma única vez</span><span class="v">2,70 GB</span><span class="s">1,63 GB às 01:02 · 1,07 GB às 01:05</span></div>
+  </div>
+
+  <h3>Linha do tempo</h3>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Hora</th><th>Passo</th><th>Resultado</th></tr></thead>
+      <tbody>
+        <tr><td class="n">00:31</td><td>portão (<code>checklist</code>)</td><td>0 falhas, 0 avisos; BIOMIE v2 estável há 26 h</td></tr>
+        <tr><td class="n">00:32–00:33</td><td>pacote, <code>verificar</code> e <code>preparar</code></td><td>hash conferido; foto "antes"; rede do BIOMIE interna e sem endereço do servidor</td></tr>
+        <tr><td class="n">01:02–01:04</td><td><code>construir</code></td><td>83 s; pacote oficial conferido por SHA256</td></tr>
+        <tr><td class="n">01:05</td><td><code>modelo</code></td><td>20 s; camadas fixadas conferidas</td></tr>
+        <tr><td class="n">01:06</td><td><code>subir</code></td><td>saudáveis em ~6 s; nuvem do Ollama desligada; monitor e backup instalados</td></tr>
+        <tr><td class="n">01:31–01:35</td><td><code>testar</code></td><td>19 OK, 0 falha</td></tr>
+        <tr><td class="n">01:38</td><td>ensaio de reversão, comparação e checklist</td><td>tudo aprovado</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Uso real de recursos</h3>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Medida</th><th>Valor</th></tr></thead>
+      <tbody>
+        <tr><td>CPU do Ollama nos testes</td><td>216 s em ~234 s (≈ 92% do teto de 1 CPU); 1 vCPU sempre livre para os outros sistemas</td></tr>
+        <tr><td>Carga de 1 min do servidor</td><td>0,3 antes · média 1,64 e máxima 2,63 durante a geração · 0,3 dois minutos depois</td></tr>
+        <tr><td>Ollama parado / carregado / pico</td><td class="n">8–20 MB / 1.655–1.776 MB / 1.783 MB</td></tr>
+        <tr><td>Gateway</td><td class="n">17–39 MB (teto 192 MB)</td></tr>
+        <tr><td>Memória livre do servidor</td><td>4.636 MB no início · 3.021 MB no pior momento · 4.773 MB após a descarga</td></tr>
+        <tr><td>Swap do servidor</td><td>+97 MB de páginas inativas de outros serviços no pico; sem falta de memória</td></tr>
+        <tr><td>Disco</td><td>imagens 235 + 330 MB · modelo 973 MB · livre 29 → 28 GB</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Tempos de resposta</h3>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Pedido</th><th>Tempo</th></tr></thead>
+      <tbody>
+        <tr><td>Primeiro pedido, com carga do modelo</td><td class="n">44,4 s</td></tr>
+        <tr><td>Explicação curta, modelo carregado (5 rodadas)</td><td class="n">8,9 a 14,2 s</td></tr>
+        <tr><td>Leitura do pedido (~320 tokens)</td><td>4,5 a 4,8 s (68–70 tokens/s); 0,14 s com começo repetido</td></tr>
+        <tr><td>Geração</td><td class="n">13,1 a 13,6 tokens/s</td></tr>
+        <tr><td>Streaming: primeira palavra / total</td><td class="n">4,6 s / 10,9 s</td></tr>
+        <tr><td>Classificar (JSON)</td><td class="n">2,2 a 4,1 s</td></tr>
+        <tr><td>Fila: 6 pedidos juntos</td><td>3 atendidos (esperas de 0; 6,6; 15,2 s) e 3 recebem "ocupado" na hora</td></tr>
+        <tr><td>Limite do BIOMIE: 7 pedidos juntos</td><td>o 7º recebe "limite" (429)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Qualidade das respostas (dados fictícios de outubro)</h3>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Pergunta</th><th>Resposta</th><th>Avaliação</th></tr></thead>
+      <tbody>
+        <tr><td>Quanto faturamos em outubro?</td><td>R$ 412.350,00, repetido e com dados não pedidos</td><td><span class="pill ok">certa</span></td></tr>
+        <tr><td>Batemos a meta de outubro?</td><td>"Sim, atingiu a meta de 91,6%"</td><td><span class="pill warn">errada</span> 91,6% da meta = não bateu</td></tr>
+        <tr><td>Como outubro se compara com setembro?</td><td>diferença de 23.230,00 e "ticket aumentou de 11.144,59 para 11.144,59"</td><td><span class="pill warn">errada</span> sem sentido; número fora dos fatos</td></tr>
+        <tr><td>Quem vendeu mais em outubro?</td><td>"Ana vendeu mais que todos os outros clientes"</td><td><span class="pill ok">certa</span></td></tr>
+        <tr><td>Qual foi o ticket médio?</td><td>R$ 11.144,59</td><td><span class="pill ok">certa</span></td></tr>
+        <tr><td>Quantos clientes novos?</td><td>"5."</td><td><span class="pill ok">certa</span></td></tr>
+        <tr><td>Faturamento de dezembro de 2025? (fora dos fatos)</td><td>"Não há dados suficientes."</td><td><span class="pill ok">certa</span></td></tr>
+        <tr><td>Margem de lucro? (fora dos fatos)</td><td>"10,2%"</td><td><span class="pill warn">errada</span> número inventado</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note read">A avaliação automática contou 6 de 8; a leitura humana conta 5, porque "Sim" para 91,6% da meta está errado. A explicação livre também concluiu que a meta de R$ 450.000,00 foi atingida. Classificação de intenção: 3 de 6, sempre em JSON válido.</p>
+
+  <div class="twocol">
+    <div class="card">
+      <h3>Segurança</h3>
+      <ul>
+        <li>Sem chave ou com chave inventada: 401. API do Ollama pelo gateway: 404 nos 5 caminhos.</li>
+        <li>Ollama direto e internet inalcançáveis a partir da rede do BIOMIE.</li>
+        <li>Imagem recusada (400), pedido grande recusado (413), fila e limite por minuto funcionando.</li>
+        <li>Nenhuma porta no servidor, nenhuma credencial nos containers, raiz só leitura, sem privilégios.</li>
+        <li>Pontes das duas redes sem endereço do servidor; IP público e bancos sem rota; nomes de outros projetos não resolvem.</li>
+        <li><strong>Lacuna fechada:</strong> parte das sondas testou o texto "invalid IP", que é como o Docker mostra o gateway de uma rede sem endereço. Uma sonda complementar às 01:40 mostrou que o endereço .1 de cada rede é um container do próprio MAG AI e que o resto não tem rota. A sonda será corrigida no próximo pacote.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Impacto e reversão</h3>
+      <ul>
+        <li>Foto do servidor antes × depois: 223 linhas iguais (containers de fora, portas, firewall, nginx, cron, redes e volumes). Nenhum container de outro projeto reiniciou.</li>
+        <li>BIOMIE v2 na mesma release, sem reinício, sem aviso do monitor.</li>
+        <li>Downloads às 01:02–01:05. As leituras do fechamento de estoque podem ter coincidido; isso não é verificável sem consultar o banco do BIOMIE, o que não foi feito.</li>
+        <li>Reversão ensaiada: desfazer em menos de 1 s, nada fora do MAG AI mudou, reinstalado e saudável em 6 s.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Pontos de atenção</h3>
+  <ul class="read">
+    <li>O manifesto gravado pelo Ollama tem outro hash porque acrescenta uma referência ao original; a configuração e as 5 camadas são idênticas às fixadas e os 7 arquivos do volume conferem.</li>
+    <li>Depois de 2 minutos parado, o primeiro pedido leva ~45 s: na Fase 4 a tela precisa avisar "preparando a IA".</li>
+    <li>O backup diário do MAG AI (04:12, primeiro hoje) vai para a cópia externa sem cifra, como os outros projetos, e leva as chaves das aplicações. Conferir o primeiro resultado; recomendo cifrar o pacote ou tirar as chaves dele num ajuste futuro.</li>
+  </ul>
+
+  <h3>Recomendações para a Fase 4 (não executadas)</h3>
+  <ul class="read">
+    <li>O BIOMIE calcula os indicadores e também as conclusões (meta batida sim ou não, diferença, quanto faltou); a IA só reescreve em texto.</li>
+    <li>Conferir os números de toda resposta contra os fatos; com número de fora, a resposta não aparece ou aparece marcada.</li>
+    <li>Não usar o modelo para escolher a intenção do usuário; usar menus ou regras.</li>
+    <li>Se a qualidade não bastar, testar <code>qwen3.5:2b-q4_K_M</code> (mais lento e com teto maior; exige nova aprovação).</li>
+  </ul>
+  <p class="note read">Relatório completo em <code>docs/fase3-relatorio-20261107.md</code>; evidências no servidor em <code>/srv/mag-ai/docs</code> e <code>/srv/mag-ai/fotos</code>. A Fase 4 só começa depois da aprovação destes resultados.</p>
+</section>
+
+<section aria-labelledby="atualizacao">
+  <h2 id="atualizacao">Atualização de 05/11 à tarde: condições do parecer</h2>
+  <div class="summary read">
+    <ol>
+      <li><strong>D1 e D2 aprovadas conceitualmente:</strong> integração no BIOMIE v2 e modelo <code>qwen3.5:0.8b-q8_0</code>.</li>
+      <li><strong>D3 validada</strong> contra o pacote oficial real: hashes conferidos, entram 47 arquivos (79 MB), CUDA e Vulkan (2,4 GB) ficam de fora, nenhuma dependência faltando, container sem root e só leitura.</li>
+      <li><strong>D4 ajustada:</strong> contexto de 2.048 tokens, fila de 2 pedidos e modelo fora da memória após 2 minutos sem uso. Mantidos 2,5 GB sem swap e 1 vCPU.</li>
+      <li><strong>D5:</strong> aprovada; o usuário trocou a execução para a madrugada de sábado 07/11, das 00:30 às 02:00, com reservas às 04:31 e 05:31, para o projeto amanhecer instalado e testado. O BIOMIE v2 precisa estar estável e o passo 2 do legado não pode coincidir.</li>
+      <li><strong>Checklist na VPS: 0 falhas e 0 avisos</strong> em memória, redes, bancos, backups, estabilidade e reversão. Gerado só com leitura; nada foi gravado.</li>
+      <li><strong>Isolamento reforçado:</strong> as redes do MAG AI serão criadas sem endereço do servidor na ponte, então o container só conversa com container.</li>
+    </ol>
+  </div>
+
+  <h3>D3: validação do Dockerfile</h3>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Item</th><th>Resultado</th></tr></thead>
+      <tbody>
+        <tr><td>Hash do pacote oficial 0.40.14</td><td><code>993e83d0…ce67d</code>, igual ao valor fixado no Dockerfile, ao <code>sha256sum.txt</code> da release e ao hash publicado pelo GitHub. O build confere de novo e para se não bater.</td></tr>
+        <tr><td>Imagem base Debian 12 slim</td><td>fixada por digest; índice e camada baixados e conferidos (28 MB)</td></tr>
+        <tr><td>Conteúdo da imagem</td><td>47 arquivos, 79 MB: o binário, 14 variantes de CPU (inclusive a do Zen 4 desta VPS), o executor <code>llama-server</code>, a <code>libgomp</code> e as licenças. Ficam de fora CUDA 12 (1,3 GB), CUDA 13 (1,1 GB) e Vulkan (41 MB). Imagem final de ~160 MB.</td></tr>
+        <tr><td>Dependências</td><td>todas no próprio pacote ou na base Debian; exige no máximo glibc 2.28 e libstdc++ 3.4.25, e o Debian 12 tem glibc 2.36. A instalação do <code>libgomp1</code> saiu do Dockerfile, porque o pacote já traz a biblioteca.</td></tr>
+        <tr><td>Configurações</td><td>conferidas no código-fonte da 0.40.14; o Vulkan vem ligado por padrão e foi desligado</td></tr>
+        <tr><td>Permissões</td><td>usuário 10434 sem root, sistema de arquivos só leitura, gravação só no volume de modelos e em <code>/tmp</code> na memória (sem execução), nenhuma capacidade extra, até 256 processos</td></tr>
+        <tr><td>Só a instalação comprova</td><td>o build real, o carregamento do modelo e o funcionamento com o sistema só leitura; o roteiro para no primeiro erro</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Checklist final (VPS, 05/11 15:49, somente leitura)</h3>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Item</th><th>Resultado</th><th>Evidência</th></tr></thead>
+      <tbody>
+        <tr><td>Memória</td><td><span class="pill ok">OK</span></td><td>4.414 MB livres; menor das últimas 24 h: 3.815 MB; pressão de memória 0%. Mínimo para começar: 3.000 MB</td></tr>
+        <tr><td>Isolamento de redes</td><td><span class="pill ok">OK</span></td><td>firewall ativo (22 e 80/443); cadeia DOCKER-USER vazia; só 22, 80 e 443 abertas para fora; redes do MAG AI serão internas, sem internet e sem endereço do servidor</td></tr>
+        <tr><td>Acesso aos bancos</td><td><span class="pill ok">OK</span></td><td>MariaDB só em 127.0.0.1; nada em 5432, 6379 ou 27017; os 7 bancos ficam só nas redes dos próprios projetos, sem porta; o MAG AI não recebe credencial de banco, Omie ou Supabase</td></tr>
+        <tr><td>Backups</td><td><span class="pill ok">OK</span></td><td>8 projetos com "OK (local + externo)" hoje; BIOMIE v2 cifrado há 12 h, 21 cópias fora, restauração aprovada em 01/11; base de tarefas e arquivos cifrados do legado guardados</td></tr>
+        <tr><td>Estabilidade</td><td><span class="pill ok">OK</span></td><td>BIOMIE v2 0273a021445e saudável; monitor sem aviso em 12 h; homologação parada; nenhuma tarefa no cron do legado (o biomie-python sai no passo 2, em 06/11)</td></tr>
+        <tr><td>Reversão</td><td><span class="pill ok">OK</span></td><td>desfazer em ~1 min, comparação antes × depois, remoção total; o ensaio de reversão faz parte do roteiro</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note read">Achado do checklist: por padrão, uma rede interna do Docker mantém um endereço do próprio servidor, e por ele um container alcançaria as portas que já estão abertas para a internet (22, 80 e 443). O nginx não dá acesso especial a endereços internos e o SSH só aceita chave, então não haveria exposição nova. Mesmo assim, as redes do MAG AI serão criadas com a opção do Docker que deixa a ponte sem esse endereço. Firewall e nginx não mudam. As sondas da instalação provam o efeito; se a opção não funcionar, a instalação para e eu trago a decisão.</p>
+
+  <h3>Madrugada de sábado 07/11: roteiro</h3>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Hora</th><th>Passo</th><th>Observação</th></tr></thead>
+      <tbody>
+        <tr><td class="n">sexta 22:07</td><td>pré-checagem</td><td><code>checklist</code> e condições de estabilidade, só leitura; aviso ao usuário antes de dormir</td></tr>
+        <tr><td class="n">00:31</td><td><code>checklist</code> + condições de estabilidade</td><td>portão: BIOMIE v2 estável e sem ativação nas 6 h anteriores, passo 2 do legado concluído, nenhuma homologação rodando</td></tr>
+        <tr><td class="n">~00:35</td><td>envio do pacote, <code>verificar</code> e <code>preparar</code></td><td>passos leves; podem coincidir com as leituras do fechamento de estoque</td></tr>
+        <tr><td class="n">01:01</td><td><code>construir</code></td><td>5 a 8 min; baixa o pacote oficial (~1,5 GB); só começa com o servidor folgado, senão fica para 01:31</td></tr>
+        <tr><td class="n">até 01:12</td><td><code>modelo</code> e <code>subir</code></td><td>2 a 4 min + 1 min; se passar de 01:12, o modelo vai para 01:31</td></tr>
+        <tr><td class="n">01:31</td><td><code>testar</code></td><td>começa até 01:42; sondas de rede, ponta a ponta, qualidade e desempenho, com vigia de memória</td></tr>
+        <tr><td class="n">~01:40</td><td><code>ensaiar-reversao</code></td><td>desfazer, conferir e subir de novo</td></tr>
+        <tr><td class="n">~01:45</td><td><code>comparar</code> + <code>checklist</code></td><td>prova final de que nada fora do MAG AI mudou; servidor livre antes dos backups das 02:10</td></tr>
+        <tr><td class="n">04:31</td><td>reserva</td><td>só o que tiver ficado para trás, antes da limpeza de imagens das 05:01</td></tr>
+        <tr><td class="n">05:31</td><td>segunda reserva</td><td>só o que ainda faltar (o teste começa até 05:42); termina antes do motor de inteligência do BIOMIE das 06:33</td></tr>
+        <tr><td class="n">manhã</td><td>relatório</td><td>uso real de recursos, tempos, qualidade, impacto e reversão</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note read">As duas sessões que operam o BIOMIE confirmaram que não fazem nada entre 00:30 e 02:00 nem entre 04:30 e 05:00, e foram avisadas da segunda reserva (05:30–06:15). Uma ativação do BIOMIE na sexta à noite (por exemplo, a do gráfico) cancelaria a instalação, porque o portão exige 6 horas de estabilidade.</p>
+  <p class="note read">Fechamento de estoque das 23:50: normalmente termina perto de 00:58, mas atravessa a madrugada quando o Omie fica instável (em 05→06/11 foi até 04:46). As leituras esperam a resposta do Omie e quase não usam o servidor (carga entre 0,2 e 0,6 naquela noite), por isso não cancelam a instalação. Os passos pesados do MAG AI só começam com o servidor folgado, o Ollama fica limitado a 1 dos 2 processadores, e os downloads somam ~2,6 GB uma única vez (~1,6 GB no <code>construir</code> e ~1,0 GB no <code>modelo</code>). O relatório vai mostrar o horário e o volume de cada download.</p>
+
+  <div class="twocol">
+    <div class="card">
+      <h3>Critérios de parada</h3>
+      <ul>
+        <li>Falha em qualquer passo: o roteiro para e, se os containers já subiram, <code>desfazer</code>.</li>
+        <li>Memória livre do servidor abaixo de 1.500 MB durante os testes: o vigia interrompe o teste.</li>
+        <li>Ollama acima de 2.400 MB ou encerrado por falta de memória.</li>
+        <li>Sonda alcançando banco, serviço interno, internet ou outro projeto.</li>
+        <li>Diferença fora do MAG AI na comparação que não seja de rotina agendada.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>O que vem no relatório depois</h3>
+      <ul>
+        <li>CPU do Ollama nos testes e carga máxima do servidor.</li>
+        <li>RAM parada, carregada e no pico; memória livre mínima do servidor.</li>
+        <li>Tempo de resposta por etapa, tokens por segundo e primeira palavra.</li>
+        <li>Resultado de cada teste de segurança e das sondas de rede.</li>
+        <li>Impacto nos serviços existentes: foto antes × depois e monitor do BIOMIE.</li>
+        <li>Respostas reais da IA com dados fictícios e o teste de reversão.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="approve read">
+    <p><strong>Aprovado pelo usuário em 05/11 às 16:22</strong>: D1 a D5, somente a implantação isolada do Ollama e do gateway, com os testes e o ensaio de reversão. A integração com o BIOMIE v2 fica para a Fase 4, depois da aprovação dos resultados. Execução na madrugada de sábado 07/11, das 00:30 às 02:00, com reservas às 04:31 e 05:31; as outras sessões que operam o servidor foram avisadas para não marcar nada nessa faixa.</p>
+  </div>
+</section>
+
+<section aria-labelledby="resumo">
+  <h2 id="resumo">Resumo</h2>
+  <div class="summary read">
+    <ol>
+      <li><strong>Cabe, com limites rígidos.</strong> A VPS tem 2 vCPUs AMD EPYC com AVX-512 (boas para IA em CPU), 4,4 GB de memória livres agora e nunca menos de 3,59 GB livres nos últimos 17 dias. O modelo pequeno deve ocupar 1,2 a 1,6 GB.</li>
+      <li><strong>A tag <code>qwen3.5:0.8b</code> existe na biblioteca oficial do Ollama</strong> (licença Apache 2.0). Recomendo usar a <code>qwen3.5:0.8b-q8_0</code>: os mesmos pesos, com conteúdo fixo e conferível, e 303 MB a menos.</li>
+      <li><strong>O BIOMIE em produção é o v2 (TypeScript).</strong> O repositório <code>bvladson/biomie</code> guarda o BIOMIE antigo em PHP, que está sendo desligado. A integração deve ir para o v2.</li>
+      <li><strong>Arquivos de implantação prontos e testados localmente:</strong> gateway com 20 testes automáticos, ensaio de ponta a ponta aprovado, instalação em passos com reversão em cerca de 1 minuto.</li>
+    </ol>
+  </div>
+</section>
+
+<section aria-labelledby="decisoes">
+  <h2 id="decisoes">Decisões</h2>
+  <div class="table-scroll">
+    <table class="decision">
+      <thead><tr><th>#</th><th>Decisão</th><th>Situação</th></tr></thead>
+      <tbody>
+        <tr><td>D1</td><td>Onde integrar a IA</td><td><span class="pill ok">aprovada</span> No BIOMIE v2, pelas funções de servidor que já usam a sessão do usuário. O cliente PHP fica para os sistemas PHP quando chegar a vez deles.</td></tr>
+        <tr><td>D2</td><td>Modelo</td><td><span class="pill ok">aprovada</span> <code>qwen3.5:0.8b-q8_0</code>, fixado pelas camadas.</td></tr>
+        <tr><td>D3</td><td>Imagem do Ollama</td><td><span class="pill ok">validada</span> Imagem só com CPU montada do pacote oficial 0.40.14 conferido por SHA256 (detalhes na atualização acima).</td></tr>
+        <tr><td>D4</td><td>Limites</td><td><span class="pill ok">ajustada</span> 2,5 GB sem swap, 1 vCPU, contexto 2.048, fila de 2, descarga após 2 min.</td></tr>
+        <tr><td>D5</td><td>Janela da instalação</td><td><span class="pill ok">aprovada</span> Madrugada de sábado 07/11, 00:30–02:00, com reservas às 04:31 e 05:31 (antes domingo 08/11 e sábado à tarde).</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section aria-labelledby="f1">
+  <h2 id="f1"><span class="num">FASE 1</span>Capacidade real da VPS</h2>
+  <p class="read">Coleta só de leitura em 05/11 às 14:38, mais 17 dias de histórico (4.862 amostras a cada 5 minutos, de 19/10 a 05/11). Nenhum arquivo de segredos foi lido.</p>
+  <div class="tiles">
+    <div class="tile"><span class="k">Processador</span><span class="v">2 vCPUs</span><span class="s">AMD EPYC 9354P (Zen 4), AVX-512 com VNNI. Sem GPU</span></div>
+    <div class="tile"><span class="k">Memória livre agora</span><span class="v">4,4 GB</span><span class="s">de 7,75 GB no total</span></div>
+    <div class="tile"><span class="k">Pior momento em 17 dias</span><span class="v">3,59 GB livres</span><span class="s">03/11 22:10, teste de restauração do BIOMIE antigo</span></div>
+    <div class="tile"><span class="k">CPU ocupada</span><span class="v">13–20%</span><span class="s">média de cada hora; pico de 47,5%</span></div>
+    <div class="tile"><span class="k">Disco livre</span><span class="v">36 GB</span><span class="s">de 96 GB (63% em uso)</span></div>
+    <div class="tile warn"><span class="k">Swap ocupada</span><span class="v">1,2 GB de 2 GB</span><span class="s">processos parados há tempo; pressão de memória perto de zero</span></div>
+  </div>
+
+  <h3>Orçamento de memória com a IA</h3>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Situação</th><th>Memória livre no servidor</th><th>IA (Ollama)</th><th>Sobra</th></tr></thead>
+      <tbody>
+        <tr><td>Média dos 17 dias</td><td class="n">4,35 GB</td><td class="n">1,2–1,6 GB (esperado)</td><td class="n">2,8–3,1 GB</td></tr>
+        <tr><td>Pior momento já visto</td><td class="n">3,59 GB</td><td class="n">1,2–1,6 GB (esperado)</td><td class="n">2,0–2,4 GB</td></tr>
+        <tr><td>Pior momento com a IA no teto</td><td class="n">3,59 GB</td><td class="n">2,5 GB (teto)</td><td class="n">cerca de 1,0 GB</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note read">Se a IA passar do teto, só ela cai: o container não usa swap e é o primeiro da fila se faltar memória no servidor. Fora do expediente, o modelo sai da memória depois de 15 minutos sem uso.</p>
+
+  <h3>Quem já roda na VPS</h3>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Sistema</th><th>Como roda</th><th>Limite de memória</th></tr></thead>
+      <tbody>
+        <tr><td>BIOMIE v2 (produção)</td><td>Docker: Postgres 17, PostgREST, GoTrue, nginx, web e worker</td><td>web 1,5 GB · worker 512 MB · banco 768 MB</td></tr>
+        <tr><td>BIOMIE antigo (PHP)</td><td>PHP-FPM, MariaDB e biomie-python, em desativação</td><td>sem limite</td></tr>
+        <tr><td>ERP da VSB (ERPNext)</td><td>Docker, 9 containers</td><td><span class="pill warn">sem limite</span></td></tr>
+        <tr><td>n8n e CMS da VSB</td><td>Docker, 5 containers</td><td>até 2 GB cada</td></tr>
+        <tr><td>Site MAG, SCF, site e landing da VSB, Criativo em Tela, base de tarefas</td><td>Docker, PHP-FPM e MariaDB do servidor</td><td>variado</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="read">Portas abertas para fora: só 22, 80 e 443; o resto escuta em 127.0.0.1. Firewall ativo. Docker 29.7.2 com cgroup v2, então os limites de memória e CPU funcionam. Backups de todos os projetos rodaram hoje entre 02:10 e 03:53. O Ollama não está instalado e a porta 11434 está livre.</p>
+  <p class="read">O BIOMIE em produção é o v2, no projeto Docker <code>biomie-v2</code>. As telas leem os números por funções de servidor que usam a sessão de quem está logado, então as permissões do banco valem sozinhas. É ali que a IA entra.</p>
+</section>
+
+<section aria-labelledby="f2">
+  <h2 id="f2"><span class="num">FASE 2</span>Plano</h2>
+
+  <h3>Modelo</h3>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Tag oficial</th><th>O que vem</th><th>Tamanho</th><th>Conteúdo fixo?</th></tr></thead>
+      <tbody>
+        <tr><td><code>qwen3.5:0.8b</code></td><td>modelo Q8_0 (812 MB) + visão (207 MB) + modelo auxiliar de aceleração (303 MB)</td><td class="n">1,3 GB</td><td>Não: o registro entrega versões diferentes conforme o cliente</td></tr>
+        <tr><td><code>qwen3.5:0.8b-q8_0</code> <span class="pill ok">recomendada</span></td><td>o mesmo modelo Q8_0 + a mesma visão, sem o auxiliar</td><td class="n">1,0 GB</td><td>Sim: manifesto <code>7c00f78aed0f…</code>, igual ao do site</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="read">752 milhões de parâmetros, licença Apache 2.0, exige Ollama 0.30.0 ou mais novo. O gateway desliga o modo de raciocínio, fixa o contexto em 2.048 tokens na homologação e usa temperatura baixa (0,2 a 0,3) para textos com números. Imagens são recusadas. Um modelo desse tamanho redige bem a partir de fatos prontos, mas erra quando precisa deduzir contas; por isso o BIOMIE calcula tudo e o modelo só escreve.</p>
+
+  <h3>Arquitetura</h3>
+  <figure>
+    <div class="svg-scroll">
+      <svg viewBox="0 0 1000 296" role="img" aria-label="Fluxo: navegador, nginx, BIOMIE web, gateway do MAG AI e Ollama. O BIOMIE lê o Postgres com a sessão do usuário; gateway e Ollama não têm caminho até o banco nem até a internet. O registro do Ollama só é usado no download do modelo, por uma rede temporária.">
+        <defs>
+          <marker id="seta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+          </marker>
+        </defs>
+        <rect class="zone" x="545" y="92" width="450" height="200" rx="10"/>
+        <text class="tz" x="557" y="262">projeto mag-ai</text>
+        <text class="ts" x="557" y="279">sem porta no servidor · sem internet</text>
+
+        <rect class="box" x="10" y="118" width="90" height="54" rx="6"/>
+        <text class="t" x="55" y="150" text-anchor="middle">Navegador</text>
+
+        <rect class="box" x="124" y="118" width="96" height="54" rx="6"/>
+        <text class="t" x="172" y="141" text-anchor="middle">nginx</text>
+        <text class="ts" x="172" y="160" text-anchor="middle">sem mudança</text>
+
+        <rect class="box" x="244" y="108" width="150" height="74" rx="6"/>
+        <text class="t" x="319" y="136" text-anchor="middle">BIOMIE web</text>
+        <text class="ts" x="319" y="155" text-anchor="middle">função de servidor</text>
+        <text class="ts" x="319" y="171" text-anchor="middle">calcula os fatos</text>
+
+        <rect class="box" x="244" y="236" width="150" height="46" rx="6"/>
+        <text class="t" x="319" y="264" text-anchor="middle">Postgres + RLS</text>
+
+        <rect class="box ai" x="560" y="108" width="150" height="74" rx="6"/>
+        <text class="t" x="635" y="136" text-anchor="middle">mag-ai-gateway</text>
+        <text class="ts" x="635" y="155" text-anchor="middle">chave · limites · fila</text>
+        <text class="ts" x="635" y="171" text-anchor="middle">logs sem conteúdo</text>
+
+        <rect class="box ai" x="860" y="108" width="130" height="74" rx="6"/>
+        <text class="t" x="925" y="134" text-anchor="middle">mag-ai-ollama</text>
+        <text class="ts" x="925" y="153" text-anchor="middle">qwen3.5 0,8B Q8_0</text>
+        <text class="ts" x="925" y="170" text-anchor="middle">2,5 GB · 1 vCPU</text>
+
+        <rect class="box" x="862" y="236" width="126" height="44" rx="6"/>
+        <text class="ts" x="925" y="262" text-anchor="middle">volume dos modelos</text>
+
+        <rect class="box dash" x="855" y="8" width="140" height="40" rx="6"/>
+        <text class="ts" x="925" y="33" text-anchor="middle">registro do Ollama</text>
+
+        <line class="edge" x1="100" y1="145" x2="122" y2="145" marker-end="url(#seta)"/>
+        <line class="edge" x1="220" y1="145" x2="242" y2="145" marker-end="url(#seta)"/>
+
+        <line class="edge" x1="394" y1="145" x2="558" y2="145" marker-end="url(#seta)"/>
+        <text class="tl" x="476" y="135" text-anchor="middle">fatos + chave</text>
+        <text class="tl" x="476" y="163" text-anchor="middle">rede mag-ai_biomie</text>
+
+        <line class="edge" x1="710" y1="145" x2="858" y2="145" marker-end="url(#seta)"/>
+        <text class="tl" x="784" y="135" text-anchor="middle">1 por vez</text>
+        <text class="tl" x="784" y="163" text-anchor="middle">rede mag-ai_interna</text>
+
+        <line class="edge" x1="319" y1="182" x2="319" y2="234" marker-end="url(#seta)"/>
+        <text class="tl" x="329" y="206">lê indicadores</text>
+        <text class="tl" x="329" y="221">com a sessão do usuário</text>
+
+        <line class="edge" x1="925" y1="182" x2="925" y2="236"/>
+        <text class="tl" x="917" y="212" text-anchor="end">lê o modelo</text>
+
+        <line class="edge dash" x1="925" y1="48" x2="925" y2="106" marker-end="url(#seta)"/>
+        <text class="tl" x="917" y="68" text-anchor="end">só no download</text>
+        <text class="tl" x="917" y="83" text-anchor="end">rede temporária</text>
+      </svg>
+    </div>
+    <figcaption>A IA não tem caminho até o banco nem até a internet. O BIOMIE busca os números com as permissões de quem está logado e manda só fatos prontos; só o gateway fala com o Ollama. A linha tracejada existe apenas durante o download do modelo e é removida em seguida. As duas redes do MAG AI ficam sem endereço do servidor na ponte.</figcaption>
+  </figure>
+
+  <h3>Limites</h3>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Item</th><th>Valor</th><th>Por quê</th></tr></thead>
+      <tbody>
+        <tr><td>Memória do Ollama</td><td class="n">2.560 MB, sem swap</td><td>teto pedido; esperado 1,2–1,6 GB</td></tr>
+        <tr><td>CPU do Ollama</td><td class="n">1 vCPU, prioridade menor</td><td>no máximo metade da máquina; cede quando há disputa</td></tr>
+        <tr><td>Gerações ao mesmo tempo</td><td class="n">1</td><td>2 vCPUs no total</td></tr>
+        <tr><td>Fila</td><td class="n">2 pedidos, até 30 s</td><td>1 em execução e 2 esperando; o excedente recebe "ocupado" com hora para tentar de novo</td></tr>
+        <tr><td>Modelos carregados</td><td class="n">1</td><td>o padrão do Ollama em CPU é 3</td></tr>
+        <tr><td>Contexto</td><td class="n">2.048 tokens</td><td>começo da homologação; o modelo aceita 256K; amplia conforme os resultados</td></tr>
+        <tr><td>Permanência na memória</td><td class="n">2 min sem uso</td><td>devolve a memória logo depois do uso</td></tr>
+        <tr><td>BIOMIE</td><td class="n">6/min · 300/dia · 60 s</td><td>até 4.500 caracteres por pedido; ajustável no arquivo de aplicações, sem trocar código</td></tr>
+        <tr><td>Gateway</td><td class="n">192 MB · 0,25 vCPU</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="twocol">
+    <div class="card">
+      <h3>Segurança</h3>
+      <ul>
+        <li>Nenhuma porta nova no servidor; redes internas sem internet; nuvem do Ollama desligada.</li>
+        <li>Chave por aplicação (256 bits); o gateway guarda só o hash.</li>
+        <li>Cada aplicação tem tarefas liberadas, limite por minuto, cota diária e prazo próprios.</li>
+        <li>A aplicação não escolhe modelo, contexto nem threads, e não alcança a API administrativa do Ollama.</li>
+        <li>Logs sem o texto dos pedidos, das respostas ou das chaves, com teste automático para isso.</li>
+        <li>Containers sem root, só leitura, sem privilégios extras.</li>
+        <li>Versões fixadas: pacote do Ollama por SHA256, imagens base por digest, modelo por camadas.</li>
+        <li>Sem mudança em nginx, firewall, configuração do Docker, bancos ou containers de outros projetos.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Integração ao BIOMIE v2 (Fase 4, branch separada)</h3>
+      <ol>
+        <li>A IA não acessa o banco: o BIOMIE calcula os indicadores com as funções que as telas já usam, com a sessão do usuário.</li>
+        <li><strong>Explicar o painel:</strong> resumo de 3 a 5 frases do período filtrado na tela.</li>
+        <li><strong>Perguntas em linguagem natural:</strong> catálogo fechado de intenções; o BIOMIE roda a consulta permitida e o modelo redige. Nunca SQL gerado pelo modelo, nunca escrita no Omie.</li>
+        <li><strong>Alertas e sugestões:</strong> regras do BIOMIE decidem; o modelo só escreve. Lote diário depois da análise das 06:33.</li>
+        <li>Trava de números: todo número da resposta tem de existir nos fatos, senão entra um texto-modelo.</li>
+        <li>Chave liga/desliga por perfil; começa só com SUPER_ADMIN.</li>
+        <li>Registro só com metadados (migração 0052), retenção de 90 dias.</li>
+        <li>IA fora do ar: a tela continua com os números e avisa que a explicação está indisponível.</li>
+      </ol>
+    </div>
+  </div>
+  <p class="read"><strong>Outros sistemas:</strong> cada um ganha sua chave, sua política e sua própria rede interna com o gateway. Nenhum Ollama novo, e um sistema não enxerga o outro. O monitor grava a cada 5 minutos memória, CPU, fila, erros e tempo de resposta e avisa quando a IA passa de 90% do teto, reinicia, erra seguido ou quando o servidor fica com menos de 1,5 GB livres.</p>
+
+  <p class="read"><strong>Fase 3:</strong> o roteiro com horários da madrugada de sábado, portões e critérios de parada está na atualização no topo desta página.</p>
+
+  <div class="twocol">
+    <div class="card">
+      <h3>Reversão</h3>
+      <ol>
+        <li><strong>IA no BIOMIE:</strong> desligar a chave do assistente, sem deploy.</li>
+        <li><strong>MAG AI parado:</strong> <code>mag-ai.sh desfazer</code> derruba os 2 containers e tira monitor e backup em cerca de 1 minuto. Volume, rede e imagens ficam para voltar rápido.</li>
+        <li><strong>Remoção total:</strong> <code>mag-ai.sh remover --confirmo</code> apaga volume, redes, imagens e pastas e guarda documentos e chaves em <code>/root/backups</code>.</li>
+        <li><strong>BIOMIE:</strong> release anterior pelo procedimento de sempre.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>Fase 5: o que a homologação vai mostrar</h3>
+      <ul>
+        <li>Memória parada, carregada e no pico; CPU por pedido.</li>
+        <li>Tempo até a primeira palavra e total (p50 e p95); tokens por segundo.</li>
+        <li>Fila sob carga e impacto nos outros sistemas, antes e depois.</li>
+        <li>Qualidade em 30 perguntas: números certos, intenção certa, recusa correta fora do catálogo.</li>
+        <li>Comparação <code>0.8b-q8_0</code> × <code>0.8b</code> com o auxiliar, ajustes de memória e ampliação gradual do contexto e da fila.</li>
+        <li>Teste de reversão.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Riscos e limitações</h3>
+  <ul class="read">
+    <li><strong>Velocidade:</strong> estimo de 10 a 30 segundos por explicação em 1 vCPU, a medir na instalação. O texto aparece aos poucos, e resumos diários calculados de manhã reduzem a espera.</li>
+    <li><strong>Uma pessoa por vez:</strong> com vários usuários juntos, a fila responde "ocupado, tente em instantes".</li>
+    <li><strong>Qualidade de um modelo de 0,8B:</strong> bom para frases simples a partir de fatos prontos, fraco para deduzir. Se não bastar, a próxima opção é a <code>qwen3.5:2b-q4_K_M</code> (1,9 GB, 2 a 3 vezes mais lenta, com teto maior) ou uma VPS maior.</li>
+    <li><strong>Pior caso de memória:</strong> com a IA no teto no pior momento já visto, sobra cerca de 1 GB no servidor.</li>
+    <li><strong>O Ollama lança versões quase todo dia:</strong> a versão fica fixa e só muda depois de nova homologação.</li>
+  </ul>
+</section>
+
+<section aria-labelledby="arquivos">
+  <h2 id="arquivos">Arquivos e testes</h2>
+  <p class="read">Projeto local em <code>C:\Users\VLADSON\Downloads\mag-ai</code>: diagnóstico e plano completos em <code>docs/</code>, compose e Dockerfiles em <code>deploy/</code>, gateway em <code>gateway/</code>, passos de instalação, teste de ponta a ponta e monitor em <code>ops/</code>, manifesto e backup em <code>srv/</code>.</p>
+  <div class="tiles">
+    <div class="tile"><span class="k">Testes do gateway</span><span class="v">20 de 20</span><span class="s">chave, limites, fila, prazo, cancelamento, disjuntor, logs sem conteúdo; estáveis em 5 rodadas</span></div>
+    <div class="tile"><span class="k">Ensaio de ponta a ponta</span><span class="v">aprovado</span><span class="s">gateway real com Ollama simulado; a checagem de internet só vale na VPS</span></div>
+    <div class="tile"><span class="k">Checagem de tipos</span><span class="v">sem erros</span><span class="s">TypeScript em modo estrito</span></div>
+  </div>
+  <p class="sources read">Fontes: <a href="https://ollama.com/library/qwen3.5/tags">tags do qwen3.5 no Ollama</a> · <a href="https://docs.ollama.com/faq">perguntas frequentes do Ollama</a> (OLLAMA_NO_CLOUD, fila, contexto, permanência) · <a href="https://github.com/ollama/ollama/releases/tag/v0.40.14">Ollama 0.40.14</a>.</p>
+</section>
+
+</div>
+</main>
+<footer><div class="wrap">MAG AI · Fases 1, 2 e 3 · atualizado em 07/11/2026 de madrugada · instalado e testado na VPS · Fase 4 aguarda a aprovação dos resultados</div></footer>
+<script>
+  (function () {
+    var botao = document.getElementById('copiar');
+    var frase = document.getElementById('frase');
+    if (!botao || !frase) return;
+    botao.addEventListener('click', function () {
+      var texto = frase.textContent.trim();
+      if (!navigator.clipboard) { botao.textContent = 'Selecione e copie a frase'; return; }
+      navigator.clipboard.writeText(texto).then(function () {
+        botao.textContent = 'Frase copiada';
+        setTimeout(function () { botao.textContent = 'Copiar frase'; }, 2000);
+      }, function () { botao.textContent = 'Selecione e copie a frase'; });
+    });
+  })();
+</script>
+</body>
+</html>

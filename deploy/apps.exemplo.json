@@ -1,0 +1,40 @@
+{
+  "apps": [
+    {
+      "id": "biomie",
+      "key_sha256": "SUBSTITUIR-pelo-sha256-gerado-com-node-src-chave.mjs-biomie",
+      "tasks": [
+        "explicar",
+        "resumir",
+        "responder",
+        "classificar",
+        "analisar"
+      ],
+      "rpm": 6,
+      "daily": 300,
+      "max_input_chars": 4500,
+      "max_output_tokens": 1000,
+      "timeout_s": 200,
+      "priority": "interactive",
+      "allow_json": true
+    },
+    {
+      "id": "homologacao",
+      "key_sha256": "SUBSTITUIR-pelo-sha256-gerado-com-node-src-chave.mjs-homologacao",
+      "tasks": [
+        "explicar",
+        "resumir",
+        "responder",
+        "classificar",
+        "analisar"
+      ],
+      "rpm": 60,
+      "daily": 500,
+      "max_input_chars": 4500,
+      "max_output_tokens": 1000,
+      "timeout_s": 200,
+      "priority": "batch",
+      "allow_json": true
+    }
+  ]
+}

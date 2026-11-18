@@ -1,0 +1,78 @@
+2026-11-07 00:33:08 verificar: início
+2026-11-07 00:33:08 disco livre: 29 GB; memória disponível: 4566 MB; carga: 0.61 0.58 0.46
+2026-11-07 00:33:09 servidor ocupado: carga de 1 min = 1.04
+2026-11-07 00:33:09 aviso: servidor sem folga AGORA (os passos pesados vão esperar)
+2026-11-07 00:33:13 foto 'antes': 223 linhas comparáveis em /srv/mag-ai/fotos/antes.cmp
+2026-11-07 00:33:13 verificar: ok
+2026-11-07 00:33:36 preparar: início (pacote /opt/mag-ai/build/pacote-20261107c)
+2026-11-07 00:33:36 chaves geradas: biomie e homologacao (texto só em /srv/mag-ai/CREDENCIAIS.txt)
+2026-11-07 00:33:36 rede mag-ai_biomie: interna, vazia e sem endereço do servidor na ponte
+2026-11-07 00:33:36 preparar: ok (gateway 0.1.0-b8a3326223; volume mag-ai_modelos)
+2026-11-07 01:02:28 construir: mag-ai-ollama:0.40.14-cpu (baixa o pacote oficial de ~1,5 GB e confere o SHA256)
+Warning: could not connect to a running Ollama instance
+Warning: client version is 0.40.14
+2026-11-07 01:03:48 construir: mag-ai-gateway:0.1.0-b8a3326223
+mag-ai-gateway:0.1.0-b8a3326223 330MB
+mag-ai-ollama:0.40.14-cpu 235MB
+2026-11-07 01:03:51 construir: ok
+2026-11-07 01:04:58 modelo: baixando qwen3.5:0.8b-q8_0 por uma rede temporária (mag-ai_saida)
+2026-11-07 01:05:17 modelo: rede temporária removida; conferindo as camadas
+2026-11-07 01:05:18 aviso: manifesto com hash 420789f19823e79f722d8abccf606ee09f5bcbb8b0a8e22a4f97ba2e3d36dfb2 (fixado: 7c00f78aed0fd757e9ba2f2720896768fd22da24b7fb6fe17096bb1e85bb2d25); conferindo camada a camada
+973M	/m
+2026-11-07 01:05:18 modelo: ok
+2026-11-07 01:06:28 subir: iniciando os containers do mag-ai
+2026-11-07 01:06:35 Ollama confirma no log: nuvem desligada
+2026-11-07 01:06:35 rede mag-ai_interna: ponte sem endereço do servidor
+2026-11-07 01:06:35 rede mag-ai_biomie: ponte sem endereço do servidor
+mag-ai-gateway Up 6 seconds (healthy)
+mag-ai-ollama Up 6 seconds (healthy)
+2026-11-07 01:06:35 subir: ok (monitor a cada 5 min; backup às 04:12)
+2026-11-07 01:31:33 testar: início
+2026-11-07 01:31:33 1/5 nenhuma porta do MAG AI no servidor e nenhuma credencial nos containers
+2026-11-07 01:31:34 variáveis dos containers (só nomes):  HOME MAG_AI_APPS_FILE MAG_AI_KEEP_ALIVE MAG_AI_MODEL MAG_AI_NUM_CTX MAG_AI_NUM_THREAD MAG_AI_QUEUE_MAX MAG_AI_QUEUE_WAIT_S NODE_ENV NODE_VERSION OLLAMA_CONTEXT_LENGTH OLLAMA_HOST OLLAMA_KEEP_ALIVE OLLAMA_MAX_LOADED_MODELS OLLAMA_MAX_QUEUE OLLAMA_NO_CLOUD OLLAMA_NUM_PARALLEL OLLAMA_URL OLLAMA_VULKAN PATH YARN_VERSION 
+2026-11-07 01:31:34 montagens: /mag-ai-ollama: /home/ollama/.ollama(gravável)  /mag-ai-gateway: /run/mag-ai/apps.json(só leitura)  
+2026-11-07 01:31:34 2/5 sondas de rede: bancos, serviços do servidor, internet e outros projetos inalcançáveis
+RESULTADO: isolado (113 bloqueados, 8 nomes, 2 controles positivos)
+RESULTADO: isolado (114 bloqueados, 9 nomes, 1 controles positivos)
+2026-11-07 01:31:39 3/5 testes de ponta a ponta pela rede do BIOMIE (dados fictícios), com vigia de memória do servidor
+2026-11-07 01:35:33 4/5 consumo
+2026-11-07 01:35:33 Ollama: pico de memória 1773 MB (limite 2560); agora 1773 MB; CPU nos testes 216 s
+servidor durante os testes: memória disponível mínima 3021 MB; carga de 1 min máxima 2.63
+2026-11-07 01:35:33 5/5 resultado
+2026-11-07 01:35:33 resultado detalhado: /srv/mag-ai/docs/teste-20261107-013133.txt
+OK    saúde: gateway e Ollama no ar — {"status":"ok","ollama":"up","model_loaded":false,"queue":0}
+OK    sem chave: 401
+OK    chave inventada: 401
+OK    API do Ollama não passa pelo gateway: GET /api/tags → 404
+OK    API do Ollama não passa pelo gateway: POST /api/pull → 404
+OK    API do Ollama não passa pelo gateway: POST /api/generate → 404
+OK    API do Ollama não passa pelo gateway: GET /api/ps → 404
+OK    API do Ollama não passa pelo gateway: DELETE /api/delete → 404
+OK    Ollama direto inacessível a partir da rede do BIOMIE
+OK    rede do BIOMIE com a IA não tem saída para a internet
+OK    imagem recusada: 400
+OK    pedido grande demais: 413
+OK    explicar: resposta gerada — 44444 ms
+OK    classificar: JSON válido dentro do esquema — intenção=comparar_periodos; 4104 ms
+OK    resumir em streaming — primeira palavra em 4648 ms; total 10948 ms
+OK    desempenho: 5 rodadas medidas
+OK    fila: uma geração por vez; excedente recebe 503 (sem erro) — status 200,200,200,503,503,503; 24108 ms
+OK    limite da aplicação biomie (6 por minuto): o 7º recebe 429 — 200,200,503,200,503,503,429
+OK    saúde depois da carga — {"status":"ok","ollama":"up","model_loaded":true,"queue":0}
+2026-11-07 01:35:33 testar: ok
+2026-11-07 01:38:26 ensaio de reversão: desfazer → conferir → subir de novo
+2026-11-07 01:38:26 desfazer: derrubando os containers do mag-ai (volume, redes externas e imagens ficam)
+2026-11-07 01:38:26 desfazer: ok — compare com: mag-ai.sh comparar antes depois-desfazer
+2026-11-07 01:38:26 reversão concluída em 0 s
+2026-11-07 01:38:31 foto 'depois-desfazer': 223 linhas comparáveis em /srv/mag-ai/fotos/depois-desfazer.cmp
+2026-11-07 01:38:31 comparar: NADA fora do mag-ai mudou entre 'antes' e 'depois-desfazer'
+2026-11-07 01:38:31 subir: iniciando os containers do mag-ai
+2026-11-07 01:38:38 Ollama confirma no log: nuvem desligada
+2026-11-07 01:38:38 rede mag-ai_interna: ponte sem endereço do servidor
+2026-11-07 01:38:38 rede mag-ai_biomie: ponte sem endereço do servidor
+mag-ai-gateway Up 6 seconds (healthy)
+mag-ai-ollama Up 6 seconds (healthy)
+2026-11-07 01:38:38 subir: ok (monitor a cada 5 min; backup às 04:12)
+2026-11-07 01:38:38 ensaio de reversão: ok (voltar levou 0 s; reinstalado e saudável)
+2026-11-07 01:38:54 foto 'depois': 223 linhas comparáveis em /srv/mag-ai/fotos/depois.cmp
+2026-11-07 01:38:54 comparar: NADA fora do mag-ai mudou entre 'antes' e 'depois'

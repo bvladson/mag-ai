@@ -1,0 +1,14 @@
+{
+  "name": "mag-ai-gateway",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Gateway interno do MAG AI: chave por aplica\u00e7\u00e3o, limites, fila \u00fanica e logs sem conte\u00fado, na frente do Ollama.",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node src/server.mjs",
+    "test": "node --test \"test/*.test.mjs\""
+  }
+}
