@@ -1,0 +1,8 @@
+# Scripts e código que rodam na VPS (Linux) precisam de LF: CRLF quebra o shebang.
+* text=auto eol=lf
+*.sh text eol=lf
+*.py text eol=lf
+*.mjs text eol=lf
+*.yml text eol=lf
+Dockerfile text eol=lf
+*.tar.gz binary
